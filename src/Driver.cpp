@@ -317,8 +317,21 @@ int Driver::openSerialIO(std::string const& port, int baud_rate)
 
     struct termios tio;
     memset(&tio, 0, sizeof(termios));
-    tio.c_cflag = CS8 | CREAD;    // data bits = 8bit and enable receiver
-    tio.c_iflag = IGNBRK; // don't use breaks by default
+    
+    tio.c_cflag |= CS8;
+    tio.c_cflag |= CREAD;
+    tio.c_cflag |= CLOCAL;
+    tio.c_cflag |= B38400;
+
+    /*std::cout<<hex<<"c_cflag:\n"<<tio.c_cflag<<"\n";
+    std::cout<<hex<<"c_iflag:\n"<<tio.c_iflag<<"\n";
+    std::cout<<hex<<"c_oflag:\n"<<tio.c_oflag<<"\n";
+    std::cout<<hex<<"c_lflag:\n"<<tio.c_lflag<<"\n";
+    std::cout<<hex<<"c_cc:\n"<<tio.c_cc<<"\n";*/
+
+
+    if (tcflush(fd,TCIOFLUSH) != 0)
+        throw UnixError("Driver::openSerial cannot set serial options");
 
     // Commit
     if (tcsetattr(fd, TCSANOW, &tio)!=0)
